@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foray &mdash; Strawberry Leaf Diagnostics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b1310;
+    --panel: #101d17;
+    --panel-2: #16261e;
+    --paper: #f3eedd;
+    --paper-dim: #e7dfc7;
+    --leaf: #5a9a6a;
+    --leaf-dim: #3c6e47;
+    --berry: #c4184f;
+    --berry-dim: #8e1f3b;
+    --amber: #d9a441;
+    --ink: #e9e6d9;
+    --muted: #8fa08f;
+    --line: #24352b;
+    --radius: 4px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(90,154,106,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(196,24,79,0.06), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  a:focus-visible, button:focus-visible, input:focus-visible, label:focus-visible {
+    outline: 2px solid var(--leaf);
+    outline-offset: 2px;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    padding: 28px clamp(20px, 5vw, 64px) 20px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .brand .mark {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: var(--paper);
+    letter-spacing: 0.01em;
+  }
+  .brand .mark em { color: var(--leaf); font-style: italic; font-weight: 300; }
+  .brand .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-left: 1px solid var(--line);
+    padding-left: 10px;
+  }
+  .specimen-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    padding: 56px clamp(20px, 5vw, 64px) 24px;
+    max-width: 980px;
+  }
+  .hero .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(2rem, 4.6vw, 3.1rem);
+    line-height: 1.08;
+    margin: 0 0 18px;
+    color: var(--paper);
+  }
+  .hero h1 em { color: var(--leaf); font-style: italic; font-weight: 300; }
+  .hero p {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  /* ---------- main layout ---------- */
+  main {
+    padding: 20px clamp(20px, 5vw, 64px) 80px;
+    display: grid;
+    grid-template-columns: minmax(280px, 420px) 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    main { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* ---------- specimen slide (upload) ---------- */
+  .slide-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .slide-label .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--leaf);
+    display: inline-block;
+    margin-right: 8px;
+    box-shadow: 0 0 6px var(--leaf);
+  }
+
+  .dropzone {
+    position: relative;
+    margin: 18px;
+    aspect-ratio: 1 / 1;
+    border: 1.5px dashed var(--line);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(143,160,143,0.05) 24px),
+      repeating-linear-gradient(90deg, transparent, transparent 23px, rgba(143,160,143,0.05) 24px),
+      var(--panel-2);
+    transition: border-color 0.2s ease;
+    overflow: hidden;
+  }
+  .dropzone.drag { border-color: var(--leaf); }
+  .dropzone input { display: none; }
+
+  .dz-empty {
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+  }
+  .dz-empty .icon {
+    font-size: 2.1rem;
+    margin-bottom: 10px;
+    color: var(--leaf-dim);
+  }
+  .dz-empty .cta {
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    color: var(--paper);
+    margin-bottom: 6px;
+  }
+  .dz-empty .hint {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
+
+  .dz-preview { position: absolute; inset: 0; }
+  .dz-preview img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: saturate(1.05);
+  }
+
+  .scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--leaf) 20%, var(--paper) 50%, var(--leaf) 80%, transparent);
+    box-shadow: 0 0 12px 2px rgba(90,154,106,0.7);
+    top: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .scan-line.active {
+    animation: scan 1.6s cubic-bezier(0.65,0,0.35,1) infinite;
+    opacity: 1;
+  }
+  @keyframes scan {
+    0% { top: 0%; opacity: 0; }
+    8% { opacity: 1; }
+    92% { opacity: 1; }
+    100% { top: 98%; opacity: 0; }
+  }
+
+  .replace-btn {
+    position: absolute;
+    bottom: 10px; right: 10px;
+    background: rgba(11,19,16,0.8);
+    border: 1px solid var(--line);
+    color: var(--paper);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .replace-btn:hover { border-color: var(--leaf); }
+
+  .slide-footer {
+    padding: 16px 18px 20px;
+  }
+  .analyze-btn {
+    width: 100%;
+    background: var(--leaf-dim);
+    color: var(--paper);
+    border: none;
+    padding: 13px 16px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .analyze-btn:hover:not(:disabled) { background: var(--leaf); }
+  .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .backend-note {
+    margin-top: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .backend-note input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    padding: 6px 8px;
+    border-radius: var(--radius);
+    margin-top: 4px;
+  }
+
+  /* ---------- report card ---------- */
+  .report {
+    background: var(--paper);
+    color: #1c241d;
+    border-radius: var(--radius);
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+  }
+  .report-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 22px 26px 16px;
+    border-bottom: 1px dashed #c9bf9e;
+  }
+  .report-head .title {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 1.2rem;
+  }
+  .report-head .meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: #6b6650;
+    margin-top: 4px;
+  }
+
+  .report-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 60px 30px;
+    color: #8b8468;
+    text-align: center;
+  }
+  .report-empty .icon { font-size: 2.4rem; margin-bottom: 14px; }
+  .report-empty .msg { font-family: 'Fraunces', serif; font-size: 1.15rem; color: #4a4636; margin-bottom: 6px; }
+  .report-empty .sub { font-size: 0.88rem; max-width: 32ch; line-height: 1.5; }
+
+  .report-body { padding: 24px 26px 28px; display: none; }
+  .report-body.show { display: block; }
+
+  .diagnosis-row {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: 2.5px solid var(--berry-dim);
+    color: var(--berry-dim);
+    border-radius: 3px;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    transform: rotate(-2.5deg) scale(0.85);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+  }
+  .stamp.healthy { border-color: var(--leaf-dim); color: var(--leaf-dim); }
+  .stamp.in { transform: rotate(-2.5deg) scale(1); opacity: 1; }
+  .stamp .sq { width: 5px; height: 5px; background: currentColor; border-radius: 50%; }
+
+  .dial-wrap { display: flex; align-items: center; gap: 12px; }
+  .dial-num { font-family: 'IBM Plex Mono', monospace; font-size: 1.4rem; font-weight: 500; }
+  .dial-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: #6b6650; letter-spacing: 0.05em; text-transform: uppercase; line-height: 1.4; }
+
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #8b8468;
+    margin: 22px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: #d7cfae; }
+
+  .prob-row { display: flex; align-items: center; gap: 12px; margin-bottom: 9px; }
+  .prob-name { font-size: 0.83rem; width: 150px; flex-shrink: 0; }
+  .prob-track { flex: 1; height: 8px; background: #e3dabe; border-radius: 2px; overflow: hidden; }
+  .prob-fill { height: 100%; border-radius: 2px; background: var(--leaf-dim); width: 0%; transition: width 0.7s cubic-bezier(0.22,1,0.36,1); }
+  .prob-fill.top { background: var(--berry); }
+  .prob-pct { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; width: 44px; text-align: right; color: #4a4636; }
+
+  .overlay-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .toggle-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid #c9bf9e;
+    color: #4a4636;
+    padding: 5px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .toggle-btn:hover { border-color: var(--berry-dim); }
+  .overlay-img-wrap { margin-top: 12px; border-radius: var(--radius); overflow: hidden; border: 1px solid #d7cfae; display: none; }
+  .overlay-img-wrap.show { display: block; }
+  .overlay-img-wrap img { width: 100%; display: block; }
+
+  .lesion-stat {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: #4a4636;
+  }
+
+  .footnote {
+    margin-top: 26px;
+    padding-top: 14px;
+    border-top: 1px dashed #c9bf9e;
+    font-size: 0.75rem;
+    line-height: 1.55;
+    color: #8b8468;
+  }
+
+  .spinner-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #6b6650;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+  }
+  .spinner {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid #d7cfae;
+    border-top-color: var(--berry-dim);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-box {
+    background: #f7e3e3;
+    border: 1px solid #d99a9a;
+    color: #7a2626;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin-top: 4px;
+  }
+
+  footer {
+    padding: 20px clamp(20px, 5vw, 64px) 34px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="mark">Foray<em>.</em></span>
+    <span class="tag">Strawberry Leaf Diagnostics</span>
+  </div>
+  <div class="specimen-id" id="specimenId">SPECIMEN &mdash; AWAITING SAMPLE</div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">U-Net segmentation &middot; XGBoost classification</div>
+  <h1>Point a leaf at the lens.<br><em>Read the field report back.</em></h1>
+  <p>Upload a strawberry leaf photo. A U-Net model traces the lesion boundary pixel by pixel, then an XGBoost classifier reads the shape, colour and texture of that region to call the disease &mdash; the same two-stage pipeline described in the underlying research.</p>
+</section>
+
+<main>
+  <div class="panel">
+    <div class="slide-label"><span><span class="dot"></span>Specimen Slide</span><span id="fileMeta">no file</span></div>
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp">
+      <div class="dz-empty" id="dzEmpty">
+        <div class="icon">&#127811;</div>
+        <div class="cta">Drop a leaf image here</div>
+        <div class="hint">OR CLICK TO BROWSE &middot; JPG / PNG / WEBP</div>
+      </div>
+      <div class="dz-preview" id="dzPreview" style="display:none;">
+        <img id="previewImg" alt="Uploaded leaf preview">
+        <div class="scan-line" id="scanLine"></div>
+        <button class="replace-btn" id="replaceBtn" type="button">Replace</button>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <button class="analyze-btn" id="analyzeBtn" disabled>Run Diagnosis</button>
+      <div class="backend-note">
+        API endpoint (FastAPI backend from this project)
+        <input type="text" id="apiUrl" value="http://localhost:8000">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel report">
+    <div class="report-head">
+      <div>
+        <div class="title">Field Report</div>
+        <div class="meta" id="reportMeta">no analysis run yet</div>
+      </div>
+    </div>
+
+    <div class="report-empty" id="reportEmpty">
+      <div class="icon">&#127793;</div>
+      <div class="msg">No specimen analyzed</div>
+      <div class="sub">Upload a leaf photo and run diagnosis to see the segmentation, class probabilities, and lesion coverage here.</div>
+    </div>
+
+    <div class="report-body" id="reportBody">
+      <div class="diagnosis-row">
+        <div class="stamp" id="stampEl"><span class="sq"></span><span id="stampText">&mdash;</span></div>
+        <div class="dial-wrap">
+          <div class="dial-num" id="confNum">&mdash;</div>
+          <div class="dial-label">Model<br>Confidence</div>
+        </div>
+        <div class="dial-wrap">
+          <div class="dial-num" id="lesionNum">&mdash;</div>
+          <div class="dial-label">Lesion Area<br>Detected</div>
+        </div>
+      </div>
+
+      <div class="section-label">Class Probabilities</div>
+      <div id="probList"></div>
+
+      <div class="section-label">Segmentation Overlay</div>
+      <div class="overlay-toggle-row">
+        <span class="lesion-stat" id="overlayHint">Predicted lesion mask, in red</span>
+        <button class="toggle-btn" id="overlayToggle">Show overlay</button>
+      </div>
+      <div class="overlay-img-wrap" id="overlayWrap">
+        <img id="overlayImg" alt="Lesion segmentation overlay">
+      </div>
+
+      <div class="footnote" id="footnote"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span>U-Net (PyTorch) &rarr; feature extraction &rarr; XGBoost classifier</span>
+  <span id="statusLine">backend not checked</span>
+</footer>
+
+<script>
+  const CLASS_LABELS = {
+    healthy: "Healthy",
+    leaf_scorch: "Leaf Scorch",
+    angular_leafspot: "Angular Leafspot",
+    leaf_spot: "Leaf Spot",
+    powdery_mildew_leaf: "Powdery Mildew (Leaf)"
+  };
+
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const dzEmpty = document.getElementById('dzEmpty');
+  const dzPreview = document.getElementById('dzPreview');
+  const previewImg = document.getElementById('previewImg');
+  const replaceBtn = document.getElementById('replaceBtn');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const scanLine = document.getElementById('scanLine');
+  const fileMeta = document.getElementById('fileMeta');
+  const specimenId = document.getElementById('specimenId');
+  const apiUrlInput = document.getElementById('apiUrl');
+
+  const reportEmpty = document.getElementById('reportEmpty');
+  const reportBody = document.getElementById('reportBody');
+  const reportMeta = document.getElementById('reportMeta');
+  const stampEl = document.getElementById('stampEl');
+  const stampText = document.getElementById('stampText');
+  const confNum = document.getElementById('confNum');
+  const lesionNum = document.getElementById('lesionNum');
+  const probList = document.getElementById('probList');
+  const overlayToggle = document.getElementById('overlayToggle');
+  const overlayWrap = document.getElementById('overlayWrap');
+  const overlayImg = document.getElementById('overlayImg');
+  const footnote = document.getElementById('footnote');
+  const statusLine = document.getElementById('statusLine');
+
+  let currentFile = null;
+  let specimenCounter = Math.floor(Math.random() * 900 + 100);
+
+  function checkBackend() {
+    const url = apiUrlInput.value.replace(/\/$/, '');
+    fetch(url + '/health').then(r => r.json()).then(d => {
+      statusLine.textContent = d.models_loaded
+        ? `backend online \u00b7 ${d.device}`
+        : `backend online \u00b7 weights not trained yet`;
+    }).catch(() => {
+      statusLine.textContent = 'backend unreachable \u2014 start it with: uvicorn app:app --reload';
+    });
+  }
+  checkBackend();
+  apiUrlInput.addEventListener('change', checkBackend);
+
+  function handleFile(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    currentFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      dzEmpty.style.display = 'none';
+      dzPreview.style.display = 'block';
+      analyzeBtn.disabled = false;
+      fileMeta.textContent = file.name.length > 22 ? file.name.slice(0, 19) + '...' : file.name;
+      specimenId.textContent = `SPECIMEN #SL-${specimenCounter} \u2014 READY`;
+    };
+    reader.readAsDataURL(file);
+    resetReport();
+  }
+
+  dropzone.addEventListener('click', (e) => {
+    if (e.target === replaceBtn) return;
+    fileInput.click();
+  });
+  fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+  replaceBtn.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+
+  ['dragenter', 'dragover'].forEach(evt =>
+    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); })
+  );
+  ['dragleave', 'drop'].forEach(evt =>
+    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); })
+  );
+  dropzone.addEventListener('drop', e => {
+    const file = e.dataTransfer.files[0];
+    handleFile(file);
+  });
+
+  function resetReport() {
+    reportBody.classList.remove('show');
+    reportEmpty.style.display = 'flex';
+    stampEl.classList.remove('in', 'healthy');
+    overlayWrap.classList.remove('show');
+    overlayToggle.textContent = 'Show overlay';
+    reportMeta.textContent = 'no analysis run yet';
+  }
+
+  analyzeBtn.addEventListener('click', async () => {
+    if (!currentFile) return;
+    const url = apiUrlInput.value.replace(/\/$/, '');
+
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = 'Analyzing...';
+    scanLine.classList.add('active');
+    reportEmpty.style.display = 'flex';
+    reportEmpty.innerHTML = '<div class="spinner-row"><span class="spinner"></span> Running segmentation + classification\u2026</div>';
+    reportBody.classList.remove('show');
+
+    const formData = new FormData();
+    formData.append('file', currentFile);
+
+    try {
+      const res = await fetch(url + '/predict', { method: 'POST', body: formData });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.detail || `Request failed (${res.status})`);
+      }
+      const data = await res.json();
+      renderReport(data);
+    } catch (err) {
+      reportEmpty.innerHTML = `
+        <div class="icon">&#9888;</div>
+        <div class="msg">Could not reach the model</div>
+        <div class="error-box">${err.message}. Make sure the FastAPI backend is running (uvicorn app:app --reload --port 8000) and the URL above is correct.</div>`;
+    } finally {
+      scanLine.classList.remove('active');
+      analyzeBtn.disabled = false;
+      analyzeBtn.textContent = 'Run Diagnosis';
+    }
+  });
+
+  function renderReport(data) {
+    reportEmpty.style.display = 'none';
+    reportBody.classList.add('show');
+    reportMeta.textContent = `specimen #SL-${specimenCounter} \u00b7 analyzed just now`;
+
+    const label = CLASS_LABELS[data.predicted_class] || data.predicted_class;
+    stampText.textContent = data.predicted_class === 'healthy' ? 'Healthy' : label;
+    stampEl.classList.toggle('healthy', data.predicted_class === 'healthy');
+    requestAnimationFrame(() => stampEl.classList.add('in'));
+
+    confNum.textContent = (data.confidence * 100).toFixed(1) + '%';
+    lesionNum.textContent = data.lesion_area_percent.toFixed(1) + '%';
+
+    probList.innerHTML = '';
+    const sorted = Object.entries(data.class_probabilities).sort((a, b) => b[1] - a[1]);
+    const topClass = sorted[0][0];
+    sorted.forEach(([cls, p]) => {
+      const row = document.createElement('div');
+      row.className = 'prob-row';
+      row.innerHTML = `
+        <div class="prob-name">${CLASS_LABELS[cls] || cls}</div>
+        <div class="prob-track"><div class="prob-fill${cls === topClass ? ' top' : ''}" data-w="${(p * 100).toFixed(1)}"></div></div>
+        <div class="prob-pct">${(p * 100).toFixed(1)}%</div>`;
+      probList.appendChild(row);
+    });
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.prob-fill').forEach(el => {
+        el.style.width = el.dataset.w + '%';
+      });
+    });
+
+    overlayImg.src = 'data:image/png;base64,' + data.overlay_image_base64;
+    overlayWrap.classList.remove('show');
+    overlayToggle.textContent = 'Show overlay';
+
+    footnote.textContent = 'Segmentation mask predicted by the U-Net model; disease class predicted by XGBoost on features (lesion geometry, colour, GLCM texture) extracted from that mask.';
+  }
+
+  overlayToggle.addEventListener('click', () => {
+    const showing = overlayWrap.classList.toggle('show');
+    overlayToggle.textContent = showing ? 'Hide overlay' : 'Show overlay';
+  });
+</script>
+
+</body>
+</html>

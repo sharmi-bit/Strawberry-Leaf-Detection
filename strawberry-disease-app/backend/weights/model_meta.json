@@ -1,0 +1,37 @@
+{
+  "classes": [
+    "healthy",
+    "leaf_scorch",
+    "angular_leafspot",
+    "leaf_spot",
+    "powdery_mildew_leaf"
+  ],
+  "feature_names": [
+    "lesion_area_ratio",
+    "lesion_region_count",
+    "lesion_perimeter_area_ratio",
+    "leaf_mean_r",
+    "leaf_mean_g",
+    "leaf_mean_b",
+    "leaf_std_r",
+    "leaf_std_g",
+    "leaf_std_b",
+    "leaf_mean_h",
+    "leaf_mean_s",
+    "leaf_mean_v",
+    "lesion_mean_r",
+    "lesion_mean_g",
+    "lesion_mean_b",
+    "lesion_std_r",
+    "lesion_std_g",
+    "lesion_std_b",
+    "lesion_mean_h",
+    "lesion_mean_s",
+    "lesion_mean_v",
+    "glcm_contrast",
+    "glcm_homogeneity",
+    "glcm_energy",
+    "glcm_correlation"
+  ],
+  "unet_base_ch": 16
+}
